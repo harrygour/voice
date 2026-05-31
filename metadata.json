@@ -1,0 +1,8 @@
+{
+  "name": "VoiceLoxic AI",
+  "description": "Premium AI Text to Speech SaaS with natural Indian voices, advanced emotion controls, and real-time generation.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
