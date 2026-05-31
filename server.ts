@@ -8,7 +8,26 @@ import fs from "fs";
 dotenv.config();
 
 const app = express();
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[HTTP Request Log] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(express.json());
+
+// JSON error parsing payload handler (To prevent default Express HTML response formats)
+app.use((err: any, req: any, res: any, next: any) => {
+  if (err instanceof SyntaxError && "status" in err && err.status === 400 && "body" in err) {
+    console.warn("Express: Intercepted malformed JSON syntax error in incoming request payload.");
+    return res.status(400).json({ 
+      error: "Malformed JSON message formatting. Pls check payload syntax parameters.",
+      warning: "API_ERROR_FALLBACK"
+    });
+  }
+  next(err);
+});
 
 // In-memory data store to act as transient persistent cache when database is unprovisioned
 let memoryUser = {

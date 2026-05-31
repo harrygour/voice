@@ -97,6 +97,11 @@ export default function App() {
   const [mobileLanguage, setMobileLanguage] = useState<Language>(LANGUAGES[0]);
   const [mobileVoice, setMobileVoice] = useState<VoiceCharacter>(VOICE_CHARACTERS[1]); // Chinnu
   const [mobileIsGenerating, setMobileIsGenerating] = useState<boolean>(false);
+  const [mobileAudioUrl, setMobileAudioUrl] = useState<string | null>(null);
+  const [mobileIsPlaying, setMobileIsPlaying] = useState<boolean>(false);
+  const [mobileAudioDuration, setMobileAudioDuration] = useState<number>(0);
+  const [mobileAudioProgress, setMobileAudioProgress] = useState<number>(0);
+  const mobileAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Admin section states
   const [selectedUserFilter, setSelectedUserFilter] = useState<string>("All");
@@ -577,22 +582,166 @@ export default function App() {
     }, 2000);
   };
 
-  // Flutter Mobile App simulation trigger
-  const runMobileTTS = () => {
-    if (!mobileText.trim()) return;
+  // Helper to play synthesized premium mobile audio tracks
+  const playMobileAudio = (url: string) => {
+    if (!mobileAudioRef.current) {
+      mobileAudioRef.current = new Audio();
+    }
+    
+    mobileAudioRef.current.src = url;
+    mobileAudioRef.current.currentTime = 0;
+    
+    const onTimeUpdate = () => {
+      if (mobileAudioRef.current) {
+        const pct = (mobileAudioRef.current.currentTime / mobileAudioRef.current.duration) * 100;
+        setMobileAudioProgress(pct || 0);
+      }
+    };
+
+    const onLoadedMetadata = () => {
+      if (mobileAudioRef.current) {
+        setMobileAudioDuration(mobileAudioRef.current.duration || 0);
+      }
+    };
+
+    const onEnded = () => {
+      setMobileIsPlaying(false);
+      setMobileAudioProgress(100);
+    };
+
+    mobileAudioRef.current.addEventListener("timeupdate", onTimeUpdate);
+    mobileAudioRef.current.addEventListener("loadedmetadata", onLoadedMetadata);
+    mobileAudioRef.current.addEventListener("ended", onEnded);
+
+    mobileAudioRef.current.play()
+      .then(() => {
+        setMobileIsPlaying(true);
+      })
+      .catch((e) => {
+        console.error("Mobile high-fi playback failed", e);
+      });
+  };
+
+  // flutter mobile app simulation action trigger with premium backend generation and zero-cost fallback
+  const runMobileTTS = async () => {
+    if (!mobileText.trim()) {
+      showToast("📢 Text cannot be empty.");
+      return;
+    }
+    
     setMobileIsGenerating(true);
-    setTimeout(() => {
-      setMobileIsGenerating(false);
-      showToast("📱 Mobile App Synthesis: Played output through simulated Flutter player!");
+    setMobileAudioProgress(0);
+    setMobileIsPlaying(false);
+    setMobileAudioUrl(null);
+
+    if (mobileAudioRef.current) {
+      mobileAudioRef.current.pause();
+    }
+    if (synthRef.current) {
+      synthRef.current.cancel();
+    }
+
+    try {
+      showToast("📱 Mobile App: Requesting premium high-fidelity voice...");
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: mobileText,
+          voiceName: mobileVoice.geminiVoiceName || "Kore",
+          emotionPrompt: "Speak in a natural, highly appealing voice with perfect clarity.",
+          languageName: mobileLanguage.name
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Server returned error status (${response.status}): ${errText}`);
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Invalid non-JSON response from server endpoint.");
+      }
+
+      const data = await response.json();
+      if (data.audioContent) {
+        // Successful generation of cloud audio content payload (base64 string converted to blob)
+        const audioBytesString = atob(data.audioContent);
+        const bytesArray = new Uint8Array(audioBytesString.length);
+        for (let i = 0; i < audioBytesString.length; i++) {
+          bytesArray[i] = audioBytesString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytesArray], { type: "audio/wav" });
+        const objectUrl = URL.createObjectURL(audioBlob);
+        setMobileAudioUrl(objectUrl);
+        setMobileIsGenerating(false);
+        showToast("✨ Premium high-fidelity mobile speech generated!");
+
+        // Deduct simulated credit balance
+        setCurrentUser(prev => ({
+          ...prev,
+          creditsLeft: Math.max(0, prev.creditsLeft - 10)
+        }));
+
+        // Trigger autoplay logic on the virtual smartphone device
+        setTimeout(() => {
+          playMobileAudio(objectUrl);
+        }, 300);
+
+      } else {
+        throw new Error("Missing audioContent bytes in response payload.");
+      }
+    } catch (err: any) {
+      console.warn("Mobile server audio generation hit fallback:", err);
+      // Fluid zero-cost local SpeechSynthesis fallback route setup
+      showToast("📱 Mobile App: API offline. Using zero-cost device speaker.");
       
-      // Native reading speaker
+      setMobileIsGenerating(false);
+      setMobileAudioUrl(null);
+
       if (synthRef.current) {
-        synthRef.current.cancel();
         const testUtterance = new SpeechSynthesisUtterance(mobileText);
-        testUtterance.lang = "hi-IN";
+        
+        const codeMapping: Record<string, string> = {
+          hindi: "hi-IN",
+          english: "en-IN",
+          hinglish: "hi-IN",
+          tamil: "ta-IN",
+          telugu: "te-IN",
+          bengali: "bn-IN",
+          marathi: "mr-IN",
+          punjabi: "pa-IN"
+        };
+        testUtterance.lang = codeMapping[mobileLanguage.id] || "hi-IN";
+        
+        testUtterance.onstart = () => {
+          setMobileIsPlaying(true);
+          setMobileAudioProgress(0);
+        };
+        testUtterance.onend = () => {
+          setMobileIsPlaying(false);
+          setMobileAudioProgress(100);
+        };
+        testUtterance.onerror = () => {
+          setMobileIsPlaying(false);
+        };
+
+        const voicesList = synthRef.current.getVoices();
+        let matchedVoice = voicesList.find(v => 
+          v.lang.toLowerCase().includes(testUtterance.lang.toLowerCase()) && 
+          v.name.toLowerCase().includes(mobileVoice.gender.toLowerCase() === "male" ? "male" : "female")
+        );
+        if (!matchedVoice) {
+          matchedVoice = voicesList.find(v => v.lang.toLowerCase().includes(testUtterance.lang.toLowerCase()));
+        }
+        if (matchedVoice) {
+          testUtterance.voice = matchedVoice;
+        }
+
         synthRef.current.speak(testUtterance);
       }
-    }, 1500);
+    }
   };
 
   // Delete project from history log
@@ -805,9 +954,13 @@ export default function App() {
                   <label className="text-[11px] font-semibold text-zinc-500 block uppercase tracking-wider mb-2">
                     Target Language Accent Matcher ({LANGUAGES.length})
                   </label>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-8 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
                     {LANGUAGES.map((lang) => {
                       const isSupported = selectedVoice.languageSupport.includes(lang.id);
+                      const shortName = lang.name
+                        .replace(" Accent", "")
+                        .replace(" Mix", "")
+                        .replace("Indian ", "");
                       return (
                         <button
                           key={lang.id}
@@ -823,7 +976,7 @@ export default function App() {
                           } ${!isSupported ? "opacity-42 border-dashed" : ""}`}
                         >
                           <span className="text-base mb-0.5 leading-none">{lang.flag}</span>
-                          <span className="text-[10px] font-semibold tracking-wider whitespace-nowrap">{lang.name}</span>
+                          <span className="text-[10px] font-semibold text-center leading-tight truncate w-full px-1">{shortName}</span>
                           <span className="text-[8px] opacity-60 font-medium truncate w-full text-center">{lang.nativeName}</span>
                         </button>
                       );
@@ -845,7 +998,7 @@ export default function App() {
                   <span className="text-[11px] font-semibold text-zinc-500 block uppercase tracking-wider mb-3">
                     Intonation & Emotion Controls
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                     {EMOTIONS.map((emo) => (
                       <button
                         key={emo.id}
@@ -860,8 +1013,8 @@ export default function App() {
                             : "bg-zinc-950/60 border-zinc-900/60 text-zinc-400 hover:bg-zinc-900"
                         }`}
                       >
-                        <span className="text-xl mb-1.5">{emo.icon}</span>
-                        <span className="text-[10px] font-semibold text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full">{emo.label}</span>
+                        <span className="text-xl mb-1">{emo.icon}</span>
+                        <span className="text-[9px] sm:text-[10px] font-semibold text-center leading-tight break-words max-w-full w-full px-0.5 mt-0.5">{emo.label.split(" / ")[0]}</span>
                       </button>
                     ))}
                   </div>
@@ -1177,14 +1330,14 @@ export default function App() {
                           {char.desc}
                         </p>
 
-                        <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-zinc-900 gap-1.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 pt-2.5 border-t border-zinc-900 gap-2">
                           
                           {/* Accent info tag */}
-                          <div className="text-[8px] text-zinc-500 truncate max-w-[80px]">
-                            Prebuilt: <strong className="text-zinc-400 font-mono font-semibold">{char.geminiVoiceName.split("-").pop()}</strong>
+                          <div className="text-[9px] text-zinc-500 truncate max-w-full">
+                            Engine: <strong className="text-zinc-400 font-mono font-bold">{char.geminiVoiceName.split("-").pop()}</strong>
                           </div>
 
-                          <div className="flex items-center space-x-1 shrink-0">
+                          <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
                             {/* Listening sample speaker button & Download sample button right where the voices are listed */}
                             <button
                               id={`preview-speaker-btn-${char.id}`}
@@ -1570,12 +1723,71 @@ export default function App() {
                       <div className="bg-zinc-950 p-2.5 rounded-xl border border-zinc-800/80 space-y-2">
                         <div className="flex justify-between items-center text-[9px] text-zinc-500">
                           <span>Synthesizer timeline</span>
-                          <span className="font-mono text-zinc-400">0:00 / 0:02</span>
+                          <span className="font-mono text-zinc-400">
+                            {mobileAudioUrl
+                              ? `${Math.floor((mobileAudioProgress * mobileAudioDuration) / 100).toFixed(0)}s / ${mobileAudioDuration.toFixed(1)}s`
+                              : mobileIsGenerating ? "Generating..." : "0:00 / 0:00"}
+                          </span>
                         </div>
                         
                         <div className="h-1 bg-zinc-900 rounded-lg overflow-hidden">
-                          <div className={`h-full bg-purple-500 ${mobileIsGenerating ? "w-2/3 animate-pulse" : "w-0"}`} />
+                          <div 
+                            className={`h-full bg-rose-500 transition-all duration-350 ${mobileIsGenerating ? "w-2/3 animate-pulse" : ""}`} 
+                            style={{ width: mobileIsGenerating ? undefined : `${mobileAudioProgress}%` }}
+                          />
                         </div>
+
+                        {/* Interactive Play/Pause controller inside Phone */}
+                        {mobileAudioUrl && (
+                          <div className="flex items-center justify-between pt-1 border-t border-zinc-900/60 mt-1.5 gap-2">
+                            <button
+                              id="btn-mobile-play-toggle"
+                              onClick={() => {
+                                if (mobileAudioRef.current) {
+                                  if (mobileIsPlaying) {
+                                    mobileAudioRef.current.pause();
+                                    setMobileIsPlaying(false);
+                                  } else {
+                                    mobileAudioRef.current.play();
+                                    setMobileIsPlaying(true);
+                                  }
+                                }
+                              }}
+                              className="p-1 px-2.5 rounded bg-zinc-900 hover:bg-zinc-850 text-zinc-300 text-[9px] font-bold flex items-center space-x-1 border border-zinc-800 cursor-pointer"
+                            >
+                              {mobileIsPlaying ? (
+                                <>
+                                  <Pause className="w-2.5 h-2.5" />
+                                  <span>Pause</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-2.5 h-2.5 fill-current" />
+                                  <span>Play</span>
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              id="btn-download-mobile-inside"
+                              onClick={() => {
+                                if (mobileAudioUrl) {
+                                  const link = document.createElement("a");
+                                  link.href = mobileAudioUrl;
+                                  link.download = `mobile_voice_${mobileVoice.id}.wav`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  showToast("📥 Mobile Audio Voice Track downloaded!");
+                                }
+                              }}
+                              className="p-1 px-2 rounded bg-rose-500 hover:bg-rose-600 text-white text-[9px] font-black uppercase flex items-center space-x-1 shadow shadow-rose-500/10 cursor-pointer"
+                            >
+                              <Download className="w-2.5 h-2.5" />
+                              <span>Download</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Dynamic simulation banner inside smartphone screen */}
