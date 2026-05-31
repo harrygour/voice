@@ -190,6 +190,10 @@ export default function App() {
           })
         });
         
+        if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) {
+          throw new Error("Server response was not in expected JSON format (possible timeout or platform initializing).");
+        }
+        
         const data = await response.json();
         
         if (data.audioContent) {
@@ -259,6 +263,10 @@ export default function App() {
             languageName: selectedLanguage.name
           })
         });
+
+        if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) {
+          throw new Error("Invalid server audio response format or API server offline.");
+        }
 
         const data = await response.json();
 
@@ -1370,6 +1378,11 @@ export default function App() {
                                       languageName: "Hindi Accent"
                                     })
                                   });
+
+                                  if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) {
+                                    throw new Error("Invalid response format from synthesis service.");
+                                  }
+
                                   const data = await response.json();
                                   if (data.audioContent) {
                                     const audioBytesString = atob(data.audioContent);
@@ -1508,6 +1521,11 @@ export default function App() {
                                         languageName: lang.name
                                       })
                                     });
+
+                                    if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) {
+                                      throw new Error("Invalid response format from synthesis service.");
+                                    }
+
                                     const data = await response.json();
                                     if (data.audioContent) {
                                       const audioBytesString = atob(data.audioContent);
