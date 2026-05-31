@@ -549,7 +549,7 @@ export default function App() {
         .then(data => {
           if (data.success && data.updatedUser) {
             setCurrentUser(data.updatedUser);
-            showToast("🎁 Referral Claimed! Received 100 extra Credits plus $20 USD credit.");
+            showToast("🎁 Referral Claimed! Received 100 extra Credits plus ₹1,500 Rupees credit.");
             setPromoCodeInput("");
           }
         })
@@ -562,7 +562,7 @@ export default function App() {
             earnings: prev.earnings + 20
           }));
           setPromoCodeInput("");
-          showToast("🎁 Referral Claimed! Received 100 extra Credits plus $20 USD credit.");
+          showToast("🎁 Referral Claimed! Received 100 extra Credits plus ₹1,500 Rupees credit.");
         });
     }
   };
@@ -986,21 +986,21 @@ export default function App() {
 
               {/* Unified Output Performance Player Component */}
               {audioUrl && (
-                <div id="unified-audio-player" className="border-2 border-rose-500/30 bg-rose-950/10 p-6 rounded-2xl shadow-xl animate-fade-in relative overflow-hidden">
+                <div id="unified-audio-player" className="border-2 border-rose-500/30 bg-rose-950/15 p-6 rounded-2xl shadow-xl animate-fade-in relative overflow-hidden">
                   
                   {/* Decorative glowing background bars */}
                   <div className="absolute left-0 bottom-0 top-0 w-1.5 bg-gradient-to-b from-rose-500 to-purple-600" />
 
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-zinc-800/60 pb-3">
                     <div className="flex items-center space-x-2.5">
-                      <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 animate-ping"></span>
-                      <h4 className="text-xs font-black uppercase text-rose-400 tracking-wider">
+                      <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
+                      <h4 className="text-xs font-black uppercase text-rose-400 tracking-widest">
                         Live Synthesized Voice Output (Ready)
                       </h4>
                     </div>
                     
-                    <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-1 rounded font-bold uppercase">
-                      {engineMode === "Gemini High-Fi" ? "GEMINI AI PREVIEW STREAM (24kHz)" : "WEB SPEED DIRECT ENGINE"}
+                    <span className="text-[10px] bg-zinc-950 px-2.5 py-1 rounded-lg text-zinc-400 border border-zinc-850 font-bold tracking-wider">
+                      {engineMode === "Gemini High-Fi" ? "⚡ GEMINI AI PREVIEW STREAM (24kHz)" : "🌐 WEB SPEECH DIRECT ENGINE"}
                     </span>
                   </div>
 
@@ -1023,10 +1023,11 @@ export default function App() {
                     })}
                   </div>
 
-                  {/* Play & Modulate controls bar */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  {/* Redesigned grid alignment to prevent compact overlapping */}
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                     
-                    <div className="flex items-center space-x-3.5 w-full sm:w-auto">
+                    {/* Left: Player play/pause & info */}
+                    <div className="md:col-span-4 flex items-center space-x-3.5 w-full">
                       {!isPlaying ? (
                         <button
                           id="btn-play-audio"
@@ -1037,57 +1038,58 @@ export default function App() {
                               handleResumePlayback();
                             }
                           }}
-                          className="w-12 h-12 rounded-xl bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105"
+                          className="w-12 h-12 shrink-0 rounded-xl bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 cursor-pointer"
                         >
-                          <Play className="w-5.5 h-5.5 fill-current" />
+                          <Play className="w-5 h-5 fill-current ml-0.5" />
                         </button>
                       ) : (
                         <button
                           id="btn-pause-audio"
                           onClick={handlePausePlayback}
-                          className="w-12 h-12 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 flex items-center justify-center border border-zinc-700 shadow-md transition-transform hover:scale-105"
+                          className="w-12 h-12 shrink-0 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 flex items-center justify-center border border-zinc-700 shadow-md transition-transform hover:scale-105 cursor-pointer"
                         >
-                          <Pause className="w-5.5 h-5.5" />
+                          <Pause className="w-5 h-5" />
                         </button>
                       )}
 
-                      <div>
-                        <div className="text-xs font-bold truncate max-w-[200px]">
+                      <div className="min-w-0">
+                        <div className="text-xs font-black truncate text-zinc-100 uppercase tracking-wider">
                           {projectTitle || "Voice Clip Out"}
                         </div>
-                        <div className="text-[10px] text-zinc-500 mt-0.5">
-                          Format matches: .MP3 / .WAV stereo outputs
+                        <div className="text-[10px] text-zinc-500 mt-0.5 flex items-center gap-1">
+                          <span className="w-1 h-1 rounded-full bg-rose-500 animate-pulse"></span>
+                          Ready to Download
                         </div>
                       </div>
                     </div>
 
-                    {/* Progress slider bar representation */}
-                    <div className="flex-grow w-full text-right flex items-center space-x-3">
-                      <span className="text-[10px] text-zinc-500 font-mono">
+                    {/* Middle: Progress slider */}
+                    <div className="md:col-span-5 flex items-center space-x-2.5 bg-zinc-950/40 px-3 py-2 rounded-lg border border-zinc-850/60 w-full">
+                      <span className="text-[10px] text-zinc-500 font-mono shrink-0">
                         {Math.floor((audioProgress * audioDuration) / 100).toFixed(0)}s
                       </span>
                       <div className="h-1 bg-zinc-800 rounded-lg flex-grow relative overflow-hidden">
                         <div className="absolute left-0 top-0 bottom-0 bg-rose-500" style={{ width: `${audioProgress}%` }}></div>
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">
+                      <span className="text-[10px] text-zinc-500 font-mono shrink-0">
                         {audioDuration > 0 ? `${audioDuration.toFixed(1)}s` : "4.5s"}
                       </span>
                     </div>
 
-                    {/* Download option triggers */}
-                    <div className="flex items-center space-x-2 shrink-0">
-                      <div className="bg-zinc-900 border border-zinc-850 p-1 rounded-xl flex">
+                    {/* Right: Premium Download control trigger & format */}
+                    <div className="md:col-span-3 flex items-center justify-end gap-2 shrink-0 w-full md:w-auto">
+                      <div className="bg-zinc-900 border border-zinc-850 p-1 rounded-lg flex items-center shrink-0">
                         <button
                           id="format-mp3"
                           onClick={() => setFormat("mp3")}
-                          className={`px-2 py-1 rounded text-[10px] font-bold ${format === "mp3" ? "bg-rose-500 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+                          className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider transition-all cursor-pointer ${format === "mp3" ? "bg-rose-500 text-white shadow" : "text-zinc-400 hover:text-zinc-200"}`}
                         >
                           MP3
                         </button>
                         <button
                           id="format-wav"
                           onClick={() => setFormat("wav")}
-                          className={`px-2 py-1 rounded text-[10px] font-bold ${format === "wav" ? "bg-rose-500 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+                          className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider transition-all cursor-pointer ${format === "wav" ? "bg-rose-500 text-white shadow" : "text-zinc-400 hover:text-zinc-200"}`}
                         >
                           WAV
                         </button>
@@ -1096,9 +1098,9 @@ export default function App() {
                       <button
                         id="btn-download-audio"
                         onClick={() => triggerAudioDownload(format)}
-                        className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-xs font-bold text-zinc-100 flex items-center space-x-1.5 transition-all shadow"
+                        className="px-3.5 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 hover:shadow-rose-500/20 text-xs font-black text-white flex items-center space-x-1 transition-all shadow cursor-pointer uppercase tracking-wider shrink-0"
                       >
-                        <Download className="w-3.5 h-3.5" />
+                        <Download className="w-3.5 h-3.5 animate-bounce" />
                         <span>Download</span>
                       </button>
                     </div>
@@ -1127,8 +1129,8 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Voice grid search categories */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-2 gap-2.5 overflow-y-auto max-h-[560px] pr-1.5">
+                {/* Voice grid search categories in a sturdy, non-overlapping grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-3.5 overflow-y-auto max-h-[580px] pr-1.5">
                   {VOICE_CHARACTERS.map((char) => {
                     const isSelected = selectedVoice.id === char.id;
                     const supportsCurrentLanguage = char.languageSupport.includes(selectedLanguage.id);
@@ -1138,16 +1140,16 @@ export default function App() {
                         key={char.id}
                         id={`voice-card-${char.id}`}
                         onClick={() => handleVoiceChange(char)}
-                        className={`p-3 relative. rounded-xl cursor-pointer transition-all border flex flex-col justify-between ${
+                        className={`p-3.5 relative rounded-xl cursor-pointer transition-all border flex flex-col justify-between ${
                           isSelected
                             ? "bg-gradient-to-br from-zinc-900 via-rose-950/20 to-zinc-900 border-rose-500 shadow-md scale-[1.01]"
                             : "bg-zinc-950/50 border-zinc-900/60 hover:bg-zinc-900/50"
                         }`}
                       >
                         
-                        {/* Background subtle indicators */}
+                        {/* Background subtle indicators relative to the card anchor */}
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping" />
+                          <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping" />
                         )}
 
                         <div className="flex items-start space-x-3">
@@ -1175,26 +1177,75 @@ export default function App() {
                           {char.desc}
                         </p>
 
-                        <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-zinc-900">
+                        <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-zinc-900 gap-1.5">
                           
                           {/* Accent info tag */}
-                          <div className="text-[8px] text-zinc-500">
-                            Prebuilt model: <strong className="text-zinc-400 font-mono font-semibold">{char.geminiVoiceName}</strong>
+                          <div className="text-[8px] text-zinc-500 truncate max-w-[80px]">
+                            Prebuilt: <strong className="text-zinc-400 font-mono font-semibold">{char.geminiVoiceName.split("-").pop()}</strong>
                           </div>
 
-                          <div className="flex items-center space-x-1.5">
-                            {/* Listening sample speaker button */}
+                          <div className="flex items-center space-x-1 shrink-0">
+                            {/* Listening sample speaker button & Download sample button right where the voices are listed */}
                             <button
                               id={`preview-speaker-btn-${char.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleVoicePreview(char);
                               }}
-                              className="p-1 px-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-850 hover:border-zinc-700 text-[9px] font-black uppercase text-rose-400 flex items-center space-x-1 transition-all"
+                              className="p-1 px-1.5 rounded bg-zinc-900/85 hover:bg-zinc-800 border border-zinc-800 text-[9px] font-black uppercase text-rose-400 flex items-center space-x-0.5 transition-all cursor-pointer"
                               title="Listen to quick voice sample sound"
                             >
                               <Play className="w-2.5 h-2.5 fill-current" />
                               <span>Sample</span>
+                            </button>
+
+                            {/* Direct Download Voice Card custom greeting generator */}
+                            <button
+                              id={`download-card-voice-${char.id}`}
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  showToast(`📥 Loading high-fidelity greeting from ${char.name}...`);
+                                  const textToGen = `Namaste! Main ${char.name} hoon. Aapka VoiceLoxic me swagat hai.`;
+                                  const response = await fetch("/api/tts", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      text: textToGen,
+                                      voiceName: char.geminiVoiceName || "Kore",
+                                      emotionPrompt: "Speak in a warm, welcoming, and clear tone of voice with friendly pauses.",
+                                      languageName: "Hindi Accent"
+                                    })
+                                  });
+                                  const data = await response.json();
+                                  if (data.audioContent) {
+                                    const audioBytesString = atob(data.audioContent);
+                                    const bytesArray = new Uint8Array(audioBytesString.length);
+                                    for (let i = 0; i < audioBytesString.length; i++) {
+                                      bytesArray[i] = audioBytesString.charCodeAt(i);
+                                    }
+                                    const audioBlob = new Blob([bytesArray], { type: "audio/wav" });
+                                    const downloadUrl = URL.createObjectURL(audioBlob);
+                                    const link = document.createElement("a");
+                                    link.href = downloadUrl;
+                                    link.download = `${char.name.toLowerCase()}_greeting_track.wav`;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    showToast(`🎉 Downloaded ${char.name}'s welcome voice track!`);
+                                  } else {
+                                    showToast("❌ Could not synthesize card sample.");
+                                  }
+                                } catch (error) {
+                                  console.error("Card demo download failed:", error);
+                                  showToast("❌ Network error downloading voice greeting.");
+                                }
+                              }}
+                              className="p-1 px-1.5 rounded bg-rose-500 hover:bg-rose-600 text-[9px] font-black uppercase text-white flex items-center space-x-0.5 transition-all cursor-pointer"
+                              title={`Download custom offline speaking demo of ${char.name}`}
+                            >
+                              <Download className="w-2.5 h-2.5 text-white" />
+                              <span>Get Voice</span>
                             </button>
                           </div>
 
@@ -1604,7 +1655,7 @@ export default function App() {
               
               <div className="bg-zinc-900 p-4 rounded-xl border border-zinc-850">
                 <span className="text-[10px] text-zinc-500 uppercase font-black">Monthly SaaS revenue</span>
-                <div className="text-xl font-extrabold text-white mt-1">${simulatedRevenue} USD</div>
+                <div className="text-xl font-extrabold text-white mt-1">₹{Math.floor(simulatedRevenue * 83).toLocaleString('en-IN')} INR</div>
                 <div className="text-[10px] text-emerald-400 mt-0.5 font-bold flex items-center gap-0.5">
                   <TrendingUp className="w-3 h-3" /> +18.4% growth this month
                 </div>
@@ -1876,10 +1927,10 @@ export default function App() {
                     <Gift className="w-3.5 h-3.5" /> Referral & Commission Program
                   </div>
                   <h3 className="text-xl font-extrabold tracking-tight">
-                    Earn $20 USD For Every Creator Referral + Free Credits
+                    Earn ₹1,500 Rupees For Every Creator Referral + Free Credits
                   </h3>
                   <p className="text-xs text-zinc-400 leading-relaxed">
-                    Invite other Hindi podcasters, teachers, or YouTube creators to use VoiceLoxic. They receive <strong className="text-emerald-400 font-extrabold">100 Free credits</strong> instantly, and you earn <strong className="text-white font-heavy">$20 USD real cash</strong> plus premium extensions on their first subscription upgrade!
+                    Invite other Hindi podcasters, teachers, or YouTube creators to use VoiceLoxic. They receive <strong className="text-emerald-400 font-extrabold">100 Free credits</strong> instantly, and you earn <strong className="text-white font-heavy">₹1,500 Rupees real cash</strong> plus premium extensions on their first subscription upgrade!
                   </p>
 
                   <div className="space-y-2 pt-2">
@@ -1936,7 +1987,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between text-[11px]">
                     <span className="text-zinc-500">Your Program Earnings:</span>
-                    <strong className="text-emerald-400 font-bold">${currentUser.earnings} USD cash</strong>
+                    <strong className="text-emerald-400 font-bold">₹{Math.floor(currentUser.earnings * 75).toLocaleString('en-IN')} INR cash</strong>
                   </div>
                 </div>
               </div>
@@ -2062,7 +2113,7 @@ export default function App() {
                 <div className="border border-zinc-850 bg-zinc-950/50 p-6 rounded-2xl flex flex-col justify-between space-y-6">
                   <div className="space-y-3">
                     <div className="text-xs font-black text-zinc-400 uppercase tracking-widest text-left">Free Tier</div>
-                    <div className="text-3xl font-black text-white">$0 <span className="text-xs font-normal text-zinc-500">/ forever</span></div>
+                    <div className="text-3xl font-black text-white">₹0 <span className="text-xs font-normal text-zinc-500">/ forever</span></div>
                     <p className="text-xs text-zinc-400">Perfect for creators wanting to test synthesis capabilities with simple scripts.</p>
                   </div>
 
@@ -2089,7 +2140,7 @@ export default function App() {
                 <div className="border border-zinc-850 bg-zinc-950/50 p-6 rounded-2xl flex flex-col justify-between space-y-6">
                   <div className="space-y-3">
                     <div className="text-xs font-black text-zinc-400 uppercase tracking-widest text-left">Starter Pack</div>
-                    <div className="text-3xl font-black text-white">$9 <span className="text-xs font-normal text-zinc-500">/ monthly</span></div>
+                    <div className="text-3xl font-black text-white">₹499 <span className="text-xs font-normal text-zinc-500">/ monthly</span></div>
                     <p className="text-xs text-zinc-400">Tailored for growing educators, parodists, and storytellers starting out on YouTube.</p>
                   </div>
 
@@ -2120,7 +2171,7 @@ export default function App() {
 
                   <div className="space-y-3">
                     <div className="text-xs font-black text-rose-400 uppercase tracking-widest text-left">Professional</div>
-                    <div className="text-3xl font-black text-white">$29 <span className="text-xs font-normal text-zinc-500">/ monthly</span></div>
+                    <div className="text-3xl font-black text-white">₹999 <span className="text-xs font-normal text-zinc-500">/ monthly</span></div>
                     <p className="text-xs text-zinc-400">Ideal for full-time creators and social agencies needing commercial-grade high-fidelity outputs.</p>
                   </div>
 
@@ -2147,7 +2198,7 @@ export default function App() {
                 <div className="border border-zinc-850 bg-zinc-950/50 p-6 rounded-2xl flex flex-col justify-between space-y-6">
                   <div className="space-y-3">
                     <div className="text-xs font-black text-zinc-400 uppercase tracking-widest text-left">Enterprise Scale</div>
-                    <div className="text-3xl font-black text-white">$149 <span className="text-xs font-normal text-zinc-500">/ monthly</span></div>
+                    <div className="text-3xl font-black text-white">₹1,599 <span className="text-xs font-normal text-zinc-500">/ monthly</span></div>
                     <p className="text-xs text-zinc-400">Designed for marketing agencies, content networks, and automated audio app publishers.</p>
                   </div>
 
